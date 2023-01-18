@@ -1,4 +1,5 @@
 import time
+import psutil
 
 def exit_function(args):
     deck = args["deck"]
@@ -50,6 +51,7 @@ key_config = {
     2: {
         "render": {
             "name": "active",
+            "refresh_after": 0.9,
             "label": {
                 "default": lambda args: time.strftime("%H:%M:%S"),
                 "pressed": lambda args: time.strftime("%H:%M:%S")
@@ -88,11 +90,23 @@ key_config = {
     5: {
         "render": {
             "name": "active",
+            "refresh_after": 0.2,
             "label": {
-                "default": lambda args: f"usg: {args['info']['usage']:.2f}%",
-                "pressed": lambda args: f"usg: {args['info']['usage']:.2f}%"
+                "default": lambda args: f"usg: {sum(args['info']['l_usage']) / len(args['info']['l_usage']):.2f}%",
+                "pressed": "PRESS"
             }
         },
         "action": lambda args: print("test")
-    }
+    },
+    6: {
+        "render": {
+            "name": "active",
+            "refresh_after": 1,
+            "label": {
+                "default": lambda args: f"cpu: {psutil.cpu_percent():.2f}%\nmem: {psutil.virtual_memory().percent}%",
+                "pressed": "PRESS"
+            }
+        },
+        "action": lambda args: print("test")
+    },
 }

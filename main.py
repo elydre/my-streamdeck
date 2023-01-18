@@ -57,7 +57,8 @@ def active_render_key_image(deck, font_filename, label_text):
     image = Image.new("RGB", resolution, "black")
     draw = ImageDraw.Draw(image)
     font = ImageFont.truetype(font_filename, 14)
-    draw.text((image.width / 2, image.height - 5), text=label_text, font=font, anchor="ms", fill="white")
+    draw.text((image.width / 2, image.height / 2), text=label_text, font=font, anchor="mm", fill="white")
+
 
     return PILHelper.to_native_format(deck, image)
 
@@ -116,23 +117,29 @@ def gen_args(deck, key):
 DEFAULT_INDEX = 0
 DEFAULT_FONT = "Roboto-Regular.ttf"
 DEFAULT_BRIGHTNESS = 30
-MAX_FPM = 70 # Max frames per minute
+MAX_FPS = 50
 
 resolution = (0, 0)
 current_info = {
     "usage": 0,
+    "l_usage": [0], # stack of last usage values
     "brightness": DEFAULT_BRIGHTNESS
 }
 
 def thread_loop(deck):
-    key_to_update = [e for e in kc.key_config if kc.key_config[e]["render"]["name"] == "active"]
-    ideal = 1 / (MAX_FPM / 60)
+    key_to_update = [[e, 0] for e in kc.key_config if kc.key_config[e]["render"]["name"] == "active"]
+    ideal = 1 / MAX_FPS
     while deck.is_open():
         start_time = time.time()
         for key in key_to_update:
-            active_update_key_image(deck, key, False)
+            if time.time() - key[1] > kc.key_config[key[0]]["render"]["refresh_after"]:
+                key[1] = time.time()
+                active_update_key_image(deck, key[0], False)
         time_to_sleep = max(0, ideal - (time.time() - start_time))
         current_info["usage"] = (1 - time_to_sleep / ideal) * 100
+        if len(current_info["l_usage"]) > MAX_FPS * 200:
+            current_info["l_usage"].pop(0)
+        current_info["l_usage"].append(current_info["usage"])
         time.sleep(time_to_sleep)
 
 if __name__ == "__main__":
