@@ -24,7 +24,7 @@ def to_graph(args, in_list):
     max_val = args["info"]["resolution"][1]
 
     # scale values
-    in_max, in_min = max(in_list) + 1, min(in_list)
+    in_max, in_min = max(in_list) + max(in_list) / 10 + 1, 0
     out_list = [int((i - in_min) * (max_val - 0) / (in_max - in_min)) for i in in_list]
 
     # remove values
@@ -105,24 +105,24 @@ key_config = {
     5: {
         "render": {
             "name": "active",
-            "refresh_after": 0.2,
-            "label":  lambda args: f"usg: {sum(args['info']['l_usage']) / len(args['info']['l_usage']):.2f}%",
-        },
-        "action": None
-    },
-    6: {
-        "render": {
-            "name": "active",
             "refresh_after": 1,
             "label":  lambda args: f"cpu: {psutil.cpu_percent():.2f}%\nmem: {psutil.virtual_memory().percent}%",
         },
         "action": None
     },
-    7: {
+    6: {
         "render": {
             "name": "graph",
-            "refresh_after": 0.01,
+            "refresh_after": 0.05,
             "table": lambda args: to_graph(args, args["info"]["l_usage"]),
+        },
+        "action": None
+    },
+    7: {
+        "render": {
+            "name": "active",
+            "refresh_after": 1,
+            "label":  lambda args: f"usg: {sum(args['info']['l_usage']) / len(args['info']['l_usage']):.1f}%\nmax: {max(args['info']['l_usage']):.1f}%\nlps: {args['info']['mid_lps']:.1f}",
         },
         "action": None
     },

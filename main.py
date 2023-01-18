@@ -28,30 +28,35 @@ def key_change_callback(deck, key, state):
 DEFAULT_INDEX = 0
 DEFAULT_FONT = "Roboto-Regular.ttf"
 DEFAULT_BRIGHTNESS = 30
-MAX_FPS = 50
+MAX_LOOP_SEC = 25
 
 current_info = {
     "l_usage": [0], # stack of last usage values
     "brightness": DEFAULT_BRIGHTNESS,
     "resolution": (72, 72),
     "assets_path": ASSETS_PATH,
-    "font": DEFAULT_FONT
+    "font": DEFAULT_FONT,
+    "mid_lps": 0,
 }
 
 def thread_loop(deck):
     key_to_update = [[e, 0] for e in kc.key_config if kc.key_config[e]["render"]["name"] in ["graph", "active"]] # TODO: auto detect the actives renders modes
-    ideal = 1 / MAX_FPS
+    ideal = 1 / MAX_LOOP_SEC
+    init_time = time.time()
+    loop_count = 0
     while deck.is_open():
         start_time = time.time()
         for key in key_to_update:
             if time.time() - key[1] > kc.key_config[key[0]]["render"]["refresh_after"]:
                 key[1] = time.time()
                 rdr.get_render(kc.key_config[key[0]]["render"]["name"])(deck, key[0], False, kc.key_config, current_info)
-        if len(current_info["l_usage"]) > MAX_FPS * 10:
+        if len(current_info["l_usage"]) > MAX_LOOP_SEC * 10:
             current_info["l_usage"].pop(0)
-        time_to_sleep = max(0, ideal - (time.time() - start_time))
-        current_info["l_usage"].append((1 - time_to_sleep / ideal) * 100)
-        time.sleep(time_to_sleep)
+        taked_time = time.time() - start_time
+        current_info["l_usage"].append((taked_time / ideal) * 100)
+        loop_count += 1
+        current_info["mid_lps"] = loop_count / (time.time() - init_time)
+        time.sleep(max(0, ideal - taked_time))
 
 if __name__ == "__main__":
     streamdecks = DeviceManager().enumerate()
