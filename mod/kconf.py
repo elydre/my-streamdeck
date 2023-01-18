@@ -106,14 +106,14 @@ key_config = {
         "render": {
             "name": "active",
             "refresh_after": 1,
-            "label":  lambda args: f"cpu: {psutil.cpu_percent():.2f}%\nmem: {psutil.virtual_memory().percent}%",
+            "label":  lambda args: f"{sum(args['info']['l_usage']) / len(args['info']['l_usage']):.3f}%\n{max(args['info']['l_usage']):.2f}%\n{args['info']['mid_lps']:.4f}\n{args['info']['crsp']:.3f}%",
         },
         "action": None
     },
     6: {
         "render": {
             "name": "graph",
-            "refresh_after": 0.05,
+            "refresh_after": 1 / 20,
             "table": lambda args: to_graph(args, args["info"]["l_usage"]),
         },
         "action": None
@@ -122,7 +122,7 @@ key_config = {
         "render": {
             "name": "active",
             "refresh_after": 1,
-            "label":  lambda args: f"usg: {sum(args['info']['l_usage']) / len(args['info']['l_usage']):.1f}%\nmax: {max(args['info']['l_usage']):.1f}%\nlps: {args['info']['mid_lps']:.1f}",
+            "label":  lambda args: f"cpu: {psutil.cpu_percent():.2f}%\nram: {psutil.virtual_memory().percent}%",
         },
         "action": None
     },

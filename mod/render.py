@@ -61,7 +61,6 @@ def active_render_key_image(deck, font_filename, label_text, info):
     font = ImageFont.truetype(font_filename, 14)
     draw.text((image.width / 2, image.height / 2), text=label_text, font=font, anchor="mm", fill="white")
 
-
     return PILHelper.to_native_format(deck, image)
 
 def active_update_key_image(deck, key, state, key_config, info):
