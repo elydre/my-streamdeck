@@ -26,10 +26,11 @@ def render_key_image(deck, icon_filename, font_filename, label_text):
 
 def update_key_image(deck, key, state):
     if key in kc.key_config:
+        render_info = kc.key_config[key]["render"]
         key_style = {
-            "icon": os.path.join(ASSETS_PATH, kc.key_config[key]["icon"]["pressed" if state else "default"]),
+            "icon": os.path.join(ASSETS_PATH, render_info["icon"]["pressed" if state else "default"]),
             "font": os.path.join(ASSETS_PATH, DEFAULT_FONT),
-            "label": kc.key_config[key]["label"]["pressed" if state else "default"]
+            "label": render_info["label"]["pressed" if state else "default"]
         }
     else:
         print(f"Key {key} not configured")
@@ -51,7 +52,7 @@ def key_change_callback(deck, key, state):
         print(f"Key {key} not configured")
         return
 
-    get_render(kc.key_config[key]["render"])(deck, key, state)
+    get_render(kc.key_config[key]["render"]["name"])(deck, key, state)
     if state: kc.key_config[key]["action"](deck)
 
 def get_render(render):
@@ -86,7 +87,7 @@ if __name__ == "__main__":
 
     # Set initial key images.
     for id in kc.key_config:
-        get_render(kc.key_config[id]["render"])(deck, id, False)
+        get_render(kc.key_config[id]["render"]["name"])(deck, id, False)
 
     # Register callback function for when a key state changes.
     deck.set_key_callback(key_change_callback)
