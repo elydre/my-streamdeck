@@ -39,7 +39,7 @@ current_info = {
 }
 
 def thread_loop(deck):
-    key_to_update = [[e, 0] for e in kc.key_config if kc.key_config[e]["render"]["name"] == "active"]
+    key_to_update = [[e, 0] for e in kc.key_config if kc.key_config[e]["render"]["name"] in ["graph", "active"]] # TODO: auto detect the actives renders modes
     ideal = 1 / MAX_FPS
     while deck.is_open():
         start_time = time.time()

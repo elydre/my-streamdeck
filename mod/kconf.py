@@ -19,6 +19,24 @@ def less_brightness(args):
     info["brightness"] = max(0, info["brightness"] - 10)
     deck.set_brightness(info["brightness"])
 
+def to_graph(args, in_list):
+    max_len = args["info"]["resolution"][0]
+    max_val = args["info"]["resolution"][1]
+
+    # scale values
+    in_max, in_min = max(in_list) + 1, min(in_list)
+    out_list = [int((i - in_min) * (max_val - 0) / (in_max - in_min)) for i in in_list]
+
+    # remove values
+    while len(out_list) > max_len:
+        out_list.pop(0)
+
+    # add values
+    while len(out_list) < max_len:
+        out_list.append(0)
+
+    return out_list
+
 key_config = {
     0: {
         "render": {
@@ -97,6 +115,14 @@ key_config = {
             "name": "active",
             "refresh_after": 1,
             "label":  lambda args: f"cpu: {psutil.cpu_percent():.2f}%\nmem: {psutil.virtual_memory().percent}%",
+        },
+        "action": None
+    },
+    7: {
+        "render": {
+            "name": "graph",
+            "refresh_after": 0.01,
+            "table": lambda args: to_graph(args, args["info"]["l_usage"]),
         },
         "action": None
     },
