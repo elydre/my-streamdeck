@@ -33,6 +33,13 @@ def update_key_image(deck, key, state):
             "font": os.path.join(ASSETS_PATH, DEFAULT_FONT),
             "label": render_info["label"]["pressed" if state else "default"]
         }
+        if isinstance(key_style["label"], str):
+            pass
+        elif callable(key_style["label"]):
+            key_style["label"] = key_style["label"](gen_args(deck, key))
+        else:
+            print(f"Label {key_style['label']} is not a string or callable")
+            return
     else:
         print(f"Key {key} not configured")
         return
@@ -59,8 +66,15 @@ def active_update_key_image(deck, key, state):
         render_info = kc.key_config[key]["render"]
         key_style = {
             "font": os.path.join(ASSETS_PATH, DEFAULT_FONT),
-            "label": render_info["output"]["pressed" if state else "default"](gen_args(deck, key))
+            "label": render_info["label"]["pressed" if state else "default"]
         }
+        if isinstance(key_style["label"], str):
+            pass
+        elif callable(key_style["label"]):
+            key_style["label"] = key_style["label"](gen_args(deck, key))
+        else:
+            print(f"Label {key_style['label']} is not a string or callable")
+            return
     else:
         print(f"Key {key} not configured")
         return
@@ -79,8 +93,8 @@ def key_change_callback(deck, key, state):
         print(f"Key {key} not configured")
         return
 
-    get_render(kc.key_config[key]["render"]["name"])(deck, key, state)
     if state: kc.key_config[key]["action"](gen_args(deck, key))
+    get_render(kc.key_config[key]["render"]["name"])(deck, key, state)
 
 def get_render(render):
     render_table = {
@@ -102,7 +116,7 @@ def gen_args(deck, key):
 DEFAULT_INDEX = 0
 DEFAULT_FONT = "Roboto-Regular.ttf"
 DEFAULT_BRIGHTNESS = 30
-MAX_FPM = 90 # Max frames per minute
+MAX_FPM = 70 # Max frames per minute
 
 resolution = (0, 0)
 current_info = {

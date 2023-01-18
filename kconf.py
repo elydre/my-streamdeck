@@ -50,7 +50,7 @@ key_config = {
     2: {
         "render": {
             "name": "active",
-            "output": {
+            "label": {
                 "default": lambda args: time.strftime("%H:%M:%S"),
                 "pressed": lambda args: time.strftime("%H:%M:%S")
             }
@@ -66,7 +66,7 @@ key_config = {
             },
             "label": {
                 "default": "br +",
-                "pressed": "br +"
+                "pressed": lambda args: f"br: {args['info']['brightness']}"
             }
         },
         "action": lambda args: more_brightness(args)
@@ -80,9 +80,19 @@ key_config = {
             },
             "label": {
                 "default": "br -",
-                "pressed": "br -"
+                "pressed": lambda args: f"br: {args['info']['brightness']}"
             }
         },
         "action": lambda args: less_brightness(args)
+    },
+    5: {
+        "render": {
+            "name": "active",
+            "label": {
+                "default": lambda args: f"usg: {args['info']['usage']:.2f}%",
+                "pressed": lambda args: f"usg: {args['info']['usage']:.2f}%"
+            }
+        },
+        "action": lambda args: print("test")
     }
 }
