@@ -5,6 +5,7 @@ import threading
 from PIL import Image, ImageDraw, ImageFont
 from StreamDeck.DeviceManager import DeviceManager
 from StreamDeck.ImageHelpers import PILHelper
+import time
 
 import kconf as kc
 
@@ -41,32 +42,84 @@ def update_key_image(deck, key, state):
     with deck:
         deck.set_key_image(key, image)
 
+###########################
+# ACTIVE RENDER FUNCTIONS #
+###########################
+
+def active_render_key_image(deck, font_filename, label_text):
+    image = Image.new("RGB", resolution, "black")
+    draw = ImageDraw.Draw(image)
+    font = ImageFont.truetype(font_filename, 14)
+    draw.text((image.width / 2, image.height - 5), text=label_text, font=font, anchor="ms", fill="white")
+
+    return PILHelper.to_native_format(deck, image)
+
+def active_update_key_image(deck, key, state):
+    if key in kc.key_config:
+        render_info = kc.key_config[key]["render"]
+        key_style = {
+            "font": os.path.join(ASSETS_PATH, DEFAULT_FONT),
+            "label": render_info["output"]["pressed" if state else "default"](gen_args(deck, key))
+        }
+    else:
+        print(f"Key {key} not configured")
+        return
+    image = active_render_key_image(deck, key_style["font"], key_style["label"])
+
+    with deck:
+        deck.set_key_image(key, image)
+
+
 ##################
 # CORE FUNCTIONS #
 ##################
 
 def key_change_callback(deck, key, state):
-    print(f"Deck {deck.id()} Key {key} = {state}", flush=True)
-
     if key not in kc.key_config:
         print(f"Key {key} not configured")
         return
 
     get_render(kc.key_config[key]["render"]["name"])(deck, key, state)
-    if state: kc.key_config[key]["action"](deck)
+    if state: kc.key_config[key]["action"](gen_args(deck, key))
 
 def get_render(render):
     render_table = {
-        "classic": update_key_image
+        "classic": update_key_image,
+        "active": active_update_key_image
     }
     if render in render_table:
         return render_table[render]
     print(f"Render {render} not found, using default")
     return render_table["classic"]
 
+def gen_args(deck, key):
+    return {
+        "deck": deck,
+        "key": key,
+        "info": current_info
+    }
 
 DEFAULT_INDEX = 0
 DEFAULT_FONT = "Roboto-Regular.ttf"
+DEFAULT_BRIGHTNESS = 30
+MAX_FPM = 90 # Max frames per minute
+
+resolution = (0, 0)
+current_info = {
+    "usage": 0,
+    "brightness": DEFAULT_BRIGHTNESS
+}
+
+def thread_loop(deck):
+    key_to_update = [e for e in kc.key_config if kc.key_config[e]["render"]["name"] == "active"]
+    ideal = 1 / (MAX_FPM / 60)
+    while deck.is_open():
+        start_time = time.time()
+        for key in key_to_update:
+            active_update_key_image(deck, key, False)
+        time_to_sleep = max(0, ideal - (time.time() - start_time))
+        current_info["usage"] = (1 - time_to_sleep / ideal) * 100
+        time.sleep(time_to_sleep)
 
 if __name__ == "__main__":
     streamdecks = DeviceManager().enumerate()
@@ -81,9 +134,10 @@ if __name__ == "__main__":
     deck.reset()
 
     print(f"Opened '{deck.deck_type()}' device (serial number: '{deck.get_serial_number()}', fw: '{deck.get_firmware_version()}')")
+    resolution = deck.key_image_format()["size"]
 
     # Set initial screen brightness to 30%.
-    deck.set_brightness(30)
+    deck.set_brightness(current_info["brightness"])
 
     # Set initial key images.
     for id in kc.key_config:
@@ -91,6 +145,10 @@ if __name__ == "__main__":
 
     # Register callback function for when a key state changes.
     deck.set_key_callback(key_change_callback)
+
+    # Start thread for active render
+    active_t = threading.Thread(target=thread_loop, args=(deck,))
+    active_t.start()
 
     # Wait until all application threads have terminated (for this example,
     # this is when all deck handles are closed).
