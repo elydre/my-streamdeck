@@ -1,88 +1,14 @@
 import contextlib
 import os
 import threading
-
-from PIL import Image, ImageDraw, ImageFont
-from StreamDeck.DeviceManager import DeviceManager
-from StreamDeck.ImageHelpers import PILHelper
 import time
 
-import kconf as kc
+from StreamDeck.DeviceManager import DeviceManager
+
+import mod.kconf as kc
+import mod.render as rdr
 
 ASSETS_PATH = os.path.join(os.path.dirname(__file__), "assets")
-
-############################
-# CLASSIC RENDER FUNCTIONS #
-############################
-
-def render_key_image(deck, icon_filename, font_filename, label_text):
-    icon = Image.open(icon_filename)
-    image = PILHelper.create_scaled_image(deck, icon, margins=[0, 0, 20, 0])
-
-    draw = ImageDraw.Draw(image)
-    font = ImageFont.truetype(font_filename, 14)
-    draw.text((image.width / 2, image.height - 5), text=label_text, font=font, anchor="ms", fill="white")
-
-    return PILHelper.to_native_format(deck, image)
-
-def update_key_image(deck, key, state):
-    if key in kc.key_config:
-        render_info = kc.key_config[key]["render"]
-        key_style = {
-            "icon": os.path.join(ASSETS_PATH, render_info["icon"]["pressed" if state else "default"]),
-            "font": os.path.join(ASSETS_PATH, DEFAULT_FONT),
-            "label": render_info["label"]["pressed" if state else "default"]
-        }
-        if isinstance(key_style["label"], str):
-            pass
-        elif callable(key_style["label"]):
-            key_style["label"] = key_style["label"](gen_args(deck, key))
-        else:
-            print(f"Label {key_style['label']} is not a string or callable")
-            return
-    else:
-        print(f"Key {key} not configured")
-        return
-    image = render_key_image(deck, key_style["icon"], key_style["font"], key_style["label"])
-
-
-    with deck:
-        deck.set_key_image(key, image)
-
-###########################
-# ACTIVE RENDER FUNCTIONS #
-###########################
-
-def active_render_key_image(deck, font_filename, label_text):
-    image = Image.new("RGB", resolution, "black")
-    draw = ImageDraw.Draw(image)
-    font = ImageFont.truetype(font_filename, 14)
-    draw.text((image.width / 2, image.height / 2), text=label_text, font=font, anchor="mm", fill="white")
-
-
-    return PILHelper.to_native_format(deck, image)
-
-def active_update_key_image(deck, key, state):
-    if key in kc.key_config:
-        render_info = kc.key_config[key]["render"]
-        key_style = {
-            "font": os.path.join(ASSETS_PATH, DEFAULT_FONT),
-            "label": render_info["label"]["pressed" if state else "default"]
-        }
-        if isinstance(key_style["label"], str):
-            pass
-        elif callable(key_style["label"]):
-            key_style["label"] = key_style["label"](gen_args(deck, key))
-        else:
-            print(f"Label {key_style['label']} is not a string or callable")
-            return
-    else:
-        print(f"Key {key} not configured")
-        return
-    image = active_render_key_image(deck, key_style["font"], key_style["label"])
-
-    with deck:
-        deck.set_key_image(key, image)
 
 
 ##################
@@ -94,36 +20,22 @@ def key_change_callback(deck, key, state):
         print(f"Key {key} not configured")
         return
 
-    if state: kc.key_config[key]["action"](gen_args(deck, key))
-    get_render(kc.key_config[key]["render"]["name"])(deck, key, state)
+    if state and callable(kc.key_config[key]["action"]):
+        kc.key_config[key]["action"](rdr.gen_args(deck, key, current_info))
 
-def get_render(render):
-    render_table = {
-        "classic": update_key_image,
-        "active": active_update_key_image
-    }
-    if render in render_table:
-        return render_table[render]
-    print(f"Render {render} not found, using default")
-    return render_table["classic"]
-
-def gen_args(deck, key):
-    return {
-        "deck": deck,
-        "key": key,
-        "info": current_info
-    }
+    rdr.get_render(kc.key_config[key]["render"]["name"])(deck, key, state, kc.key_config, current_info)
 
 DEFAULT_INDEX = 0
 DEFAULT_FONT = "Roboto-Regular.ttf"
 DEFAULT_BRIGHTNESS = 30
 MAX_FPS = 50
 
-resolution = (0, 0)
 current_info = {
-    "usage": 0,
     "l_usage": [0], # stack of last usage values
-    "brightness": DEFAULT_BRIGHTNESS
+    "brightness": DEFAULT_BRIGHTNESS,
+    "resolution": (72, 72),
+    "assets_path": ASSETS_PATH,
+    "font": DEFAULT_FONT
 }
 
 def thread_loop(deck):
@@ -134,12 +46,11 @@ def thread_loop(deck):
         for key in key_to_update:
             if time.time() - key[1] > kc.key_config[key[0]]["render"]["refresh_after"]:
                 key[1] = time.time()
-                active_update_key_image(deck, key[0], False)
-        time_to_sleep = max(0, ideal - (time.time() - start_time))
-        current_info["usage"] = (1 - time_to_sleep / ideal) * 100
-        if len(current_info["l_usage"]) > MAX_FPS * 200:
+                rdr.get_render(kc.key_config[key[0]]["render"]["name"])(deck, key[0], False, kc.key_config, current_info)
+        if len(current_info["l_usage"]) > MAX_FPS * 10:
             current_info["l_usage"].pop(0)
-        current_info["l_usage"].append(current_info["usage"])
+        time_to_sleep = max(0, ideal - (time.time() - start_time))
+        current_info["l_usage"].append((1 - time_to_sleep / ideal) * 100)
         time.sleep(time_to_sleep)
 
 if __name__ == "__main__":
@@ -155,14 +66,14 @@ if __name__ == "__main__":
     deck.reset()
 
     print(f"Opened '{deck.deck_type()}' device (serial number: '{deck.get_serial_number()}', fw: '{deck.get_firmware_version()}')")
-    resolution = deck.key_image_format()["size"]
+    current_info["resolution"] = deck.key_image_format()["size"]
 
     # Set initial screen brightness to 30%.
     deck.set_brightness(current_info["brightness"])
 
     # Set initial key images.
     for id in kc.key_config:
-        get_render(kc.key_config[id]["render"]["name"])(deck, id, False)
+        rdr.get_render(kc.key_config[id]["render"]["name"])(deck, id, False, kc.key_config, current_info)
 
     # Register callback function for when a key state changes.
     deck.set_key_callback(key_change_callback)

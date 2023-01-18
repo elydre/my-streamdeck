@@ -52,12 +52,9 @@ key_config = {
         "render": {
             "name": "active",
             "refresh_after": 0.9,
-            "label": {
-                "default": lambda args: time.strftime("%H:%M:%S"),
-                "pressed": lambda args: time.strftime("%H:%M:%S")
-            }
+            "label": lambda args: time.strftime("%H:%M:%S"),
         },
-        "action": lambda args: print("test")
+        "action": None
     },
     3: {
         "render": {
@@ -91,22 +88,16 @@ key_config = {
         "render": {
             "name": "active",
             "refresh_after": 0.2,
-            "label": {
-                "default": lambda args: f"usg: {sum(args['info']['l_usage']) / len(args['info']['l_usage']):.2f}%",
-                "pressed": "PRESS"
-            }
+            "label":  lambda args: f"usg: {sum(args['info']['l_usage']) / len(args['info']['l_usage']):.2f}%",
         },
-        "action": lambda args: print("test")
+        "action": None
     },
     6: {
         "render": {
             "name": "active",
             "refresh_after": 1,
-            "label": {
-                "default": lambda args: f"cpu: {psutil.cpu_percent():.2f}%\nmem: {psutil.virtual_memory().percent}%",
-                "pressed": "PRESS"
-            }
+            "label":  lambda args: f"cpu: {psutil.cpu_percent():.2f}%\nmem: {psutil.virtual_memory().percent}%",
         },
-        "action": lambda args: print("test")
+        "action": None
     },
 }
