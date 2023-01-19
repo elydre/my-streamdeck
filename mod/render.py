@@ -8,7 +8,8 @@ def get_render(render):
     render_table = {
         "classic": classic_update_key_image,
         "active": active_update_key_image,
-        "graph": graph_update_key_image
+        "graph": graph_update_key_image,
+        "big": big_update_key_image,
     }
     if render in render_table:
         return render_table[render]
@@ -55,10 +56,10 @@ def classic_update_key_image(deck, key, state, key_config, info):
 
 # active render
 
-def active_render_key_image(deck, font_filename, label_text, info):
+def active_render_key_image(deck, font_filename, label_text, info, size):
     image = Image.new("RGB", info["resolution"], "black")
     draw = ImageDraw.Draw(image)
-    font = ImageFont.truetype(font_filename, 14)
+    font = ImageFont.truetype(font_filename, size)
     draw.text((image.width / 2, image.height / 2), text=label_text, font=font, anchor="mm", fill="white")
 
     return PILHelper.to_native_format(deck, image)
@@ -68,7 +69,8 @@ def active_update_key_image(deck, key, state, key_config, info):
         render_info = key_config[key]["render"]
         key_style = {
             "font": os.path.join(info["assets_path"], info["font"]),
-            "label": render_info["label"]
+            "label": render_info["label"],
+            "size": render_info["size"] if "size" in render_info else 14
         }
         if callable(key_style["label"]):
             key_style["label"] = key_style["label"](gen_args(deck, key, info))
@@ -78,14 +80,14 @@ def active_update_key_image(deck, key, state, key_config, info):
     else:
         print(f"Key {key} not configured")
         return
-    image = active_render_key_image(deck, key_style["font"], key_style["label"], info)
+    image = active_render_key_image(deck, key_style["font"], key_style["label"], info, key_style["size"])
 
     with deck:
         deck.set_key_image(key, image)
 
 # graph render
 
-def graph_render_key_image(deck, info, in_list):
+def graph_render_key_image(deck, info, in_list, color):
     required_size = info["resolution"][0]
     if len(in_list) != required_size:
         print(f"List size {len(in_list)} does not match required size {required_size}")
@@ -98,14 +100,15 @@ def graph_render_key_image(deck, info, in_list):
     image = Image.new("RGB", info["resolution"], "black")
     draw = ImageDraw.Draw(image)
     for i in range(len(in_list)):
-        draw.line((i, required_size, i, required_size - in_list[i]), fill="white")
+        draw.line((i, required_size, i, required_size - in_list[i]), fill=color)
     return PILHelper.to_native_format(deck, image)
 
 def graph_update_key_image(deck, key, state, key_config, info):
     if key in key_config:
         render_info = key_config[key]["render"]
         key_style = {
-            "table": render_info["table"]
+            "table": render_info["table"],
+            "color": render_info["color"],
         }
         if callable(key_style["table"]):
             key_style["table"] = key_style["table"](gen_args(deck, key, info))
@@ -115,7 +118,37 @@ def graph_update_key_image(deck, key, state, key_config, info):
     else:
         print(f"Key {key} not configured")
         return
-    image = graph_render_key_image(deck, info, key_style["table"])
+    image = graph_render_key_image(deck, info, key_style["table"], key_style["color"])
+
+    with deck:
+        deck.set_key_image(key, image)
+
+# big text render
+
+def big_render_key_image(deck, font_filename, label_text, info):
+    image = Image.new("RGB", info["resolution"], "black")
+    draw = ImageDraw.Draw(image)
+    font = ImageFont.truetype(font_filename, 40)
+    draw.text((image.width / 2, image.height / 2), text=label_text, font=font, anchor="mm", fill="white")
+
+    return PILHelper.to_native_format(deck, image)
+
+def big_update_key_image(deck, key, state, key_config, info):
+    if key in key_config:
+        render_info = key_config[key]["render"]
+        key_style = {
+            "font": os.path.join(info["assets_path"], info["font"]),
+            "label": render_info["label"]["pressed" if state else "default"]
+        }
+        if callable(key_style["label"]):
+            key_style["label"] = key_style["label"](gen_args(deck, key, info))
+        elif not isinstance(key_style["label"], str):
+            print(f"Label {key_style['label']} is not a string or callable")
+            return
+    else:
+        print(f"Key {key} not configured")
+        return
+    image = big_render_key_image(deck, key_style["font"], key_style["label"], info)
 
     with deck:
         deck.set_key_image(key, image)

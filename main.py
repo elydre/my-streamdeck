@@ -27,7 +27,7 @@ def key_change_callback(deck, key, state):
 
 DEFAULT_INDEX = 0
 DEFAULT_FONT = "Roboto-Regular.ttf"
-DEFAULT_BRIGHTNESS = 30
+DEFAULT_BRIGHTNESS = 40
 MAX_LOOP_SEC = 30
 
 current_info = {
@@ -93,7 +93,6 @@ if __name__ == "__main__":
     print(f"Opened '{deck.deck_type()}' device (serial number: '{deck.get_serial_number()}', fw: '{deck.get_firmware_version()}')")
     current_info["resolution"] = deck.key_image_format()["size"]
 
-    # Set initial screen brightness to 30%.
     deck.set_brightness(current_info["brightness"])
 
     # Set initial key images.
