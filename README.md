@@ -1,1 +1,3 @@
 this project is a simple streamdeck controller for my personal use, it requires the python streamdeck module, please check the [official documentation](https://python-elgato-streamdeck.readthedocs.io/en/stable/) for installation instructions...
+
+![streamdeck](assets/doc.jpg)
