@@ -16,9 +16,9 @@ ASSETS_PATH = os.path.join(os.path.dirname(__file__), "assets")
 ##################
 
 def key_change_callback(deck, key, state):
-    if key not in kc.key_config:
-        print(f"Key {key} not configured")
-        return
+    if key not in kc.key_config: return
+
+    rdr.get_render(kc.key_config[key]["render"]["name"])(deck, key, state, kc.key_config, current_info)
 
     if state and callable(kc.key_config[key]["action"]):
         kc.key_config[key]["action"](rdr.gen_args(deck, key, current_info))

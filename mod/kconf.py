@@ -57,41 +57,30 @@ def graph_psutil(args, thing):
 
     return to_graph(args, psutil_history[thing], 100)
 
+def get_linux_version():
+    # return linux kernel version
+    with open("/proc/version", "r") as f:
+        return f.read().split(" ")[2].split("-")[0]
 
 key_config = {
     0: {
         "render": {
             "name": "classic",
             "icon": {
-                "default": "img.jpg",
-                "pressed": "img.jpg"
+                "default": "linux.png",
+                "pressed": "linux.png"
             },
             "label": {
-                "default": "exit",
-                "pressed": "exiting"
+                "default": lambda args: get_linux_version(),
+                "pressed": "refresh"
             }
         },
-        "action": lambda args: exit_function(args)
-    },
-    1: {
-        "render": {
-            "name": "classic",
-            "icon": {
-                "default": "img.jpg",
-                "pressed": "img.jpg"
-            },
-            "label": {
-                "default": "test",
-                "pressed": "PRESS"
-            }
-        },
-        "action": lambda args: print("test")
+        "action": None
     },
     2: {
         "render": {
             "name": "active",
             "refresh_after": 0.9,
-            # show the current time at the current timezone and the time UTC
             "label": lambda args: f"{time.strftime('%H:%M:%S')}\n{time.strftime('%H:%M:%S', time.gmtime())}",
             "size": 18,
         },
@@ -114,7 +103,7 @@ key_config = {
             "label":  lambda args: f"{sum(args['info']['l_usage']) / len(args['info']['l_usage']):.3f}%\n{max(args['info']['l_usage']):.2f}%\n{args['info']['mid_lps']:.4f}\n{args['info']['crsp']:.3f}%",
             "size": 15,
         },
-        "action": None
+        "action": lambda args: exit_function(args)
     },
     6: {
         "render": {
