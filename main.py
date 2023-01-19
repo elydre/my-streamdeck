@@ -78,19 +78,10 @@ def thread_loop(deck):
 
         time.sleep(max(ideal - taked_time + patched_time, 0))
 
-if __name__ == "__main__":
-    streamdecks = DeviceManager().enumerate()
-
-    count = len(streamdecks)
-    print(f"Found {count} Stream Deck...")
-    if DEFAULT_INDEX >= count: exit(1)
-
-    deck = streamdecks[DEFAULT_INDEX]
-
+def main(deck):
     deck.open()
     deck.reset()
 
-    print(f"Opened '{deck.deck_type()}' device (serial number: '{deck.get_serial_number()}', fw: '{deck.get_firmware_version()}')")
     current_info["resolution"] = deck.key_image_format()["size"]
 
     deck.set_brightness(current_info["brightness"])
@@ -111,3 +102,20 @@ if __name__ == "__main__":
     for t in threading.enumerate():
         with contextlib.suppress(RuntimeError):
             t.join()
+
+if __name__ == "__main__":
+    try:
+        streamdecks = DeviceManager().enumerate()
+
+        count = len(streamdecks)
+        if DEFAULT_INDEX >= count: exit(1)
+
+        deck = streamdecks[DEFAULT_INDEX]
+        main(deck)
+
+    except Exception as e:
+        print("Error: ", e)
+        if not deck.is_open(): exit(1)
+        print("Closing deck...")
+        deck.reset()
+        deck.close()

@@ -1,4 +1,5 @@
 import time
+
 import psutil
 
 psutil_history = {
