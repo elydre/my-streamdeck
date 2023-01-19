@@ -101,7 +101,7 @@ key_config = {
         "render": {
             "name": "active",
             "refresh_after": 1,
-            "label":  lambda args: f"{sum(args['info']['l_usage']) / len(args['info']['l_usage']):.3f}%\n{max(args['info']['l_usage']):.2f}%\n{args['info']['mid_lps']:.4f}\n{args['info']['crsp']:.3f}%",
+            "label":  lambda args: f"{sum(args['info']['l_usage']) / len(args['info']['l_usage']):.3f}%\n{max(args['info']['l_usage']):.2f}%\n{args['info']['crsp']:.3f}%\n{args['info']['mid_lps']:.4f}",
             "size": 15,
         },
         "action": lambda args: exit_function(args)
