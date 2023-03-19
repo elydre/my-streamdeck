@@ -2,8 +2,6 @@ import time
 
 import psutil
 
-DEBUG = False
-
 psutil_history = {
     "cpu": [],
     "mem": [],
@@ -106,7 +104,7 @@ key_config = {
             "label":  lambda args: f"{sum(args['info']['l_usage']) / len(args['info']['l_usage']):.3f}%\n{max(args['info']['l_usage']):.2f}%\n{args['info']['crsp']:.3f}%\n{args['info']['mid_lps']:.4f}",
             "size": 15,
         },
-        "action": lambda args: exit_function(args) if DEBUG else None
+        "action": lambda args: exit_function(args)
     },
     6: {
         "render": {
