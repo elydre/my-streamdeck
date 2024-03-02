@@ -7,6 +7,9 @@ psutil_history = {
     "mem": [],
 }
 
+def get_memory_usage():
+    return round(psutil.virtual_memory().used / psutil.virtual_memory().total * 100, 2)
+
 def exit_function(args):
     deck = args["deck"]
     print("Exiting...")
@@ -54,7 +57,7 @@ def graph_psutil(args, thing):
     if thing == "cpu":
         psutil_history[thing].append(psutil.cpu_percent())
     elif thing == "mem":
-        psutil_history[thing].append(psutil.virtual_memory().percent)
+        psutil_history[thing].append(get_memory_usage())
 
     return to_graph(args, psutil_history[thing], 100)
 
@@ -110,7 +113,7 @@ key_config = {
         "render": {
             "name": "active",
             "refresh_after": 1,
-            "label":  lambda args: f"RAM\n{psutil.virtual_memory().percent}%\n{psutil.virtual_memory().used / 1024 ** 3:.2f}Go",
+            "label":  lambda args: f"RAM\n{get_memory_usage()}%\n{psutil.virtual_memory().used / 1024 ** 3:.2f}Go",
             "size": 15,
         },
         "action": None
