@@ -122,7 +122,7 @@ key_config = {
         "render": {
             "name": "active",
             "refresh_after": 1,
-            "label":  lambda args: f"CPU\n{psutil.cpu_percent()}%\n{psutil.cpu_freq().current / 1000:.1f}GHz",
+            "label":  lambda args: f"CPU\n{round(psutil.sensors_temperatures()['coretemp'][0].current)}°C\n{psutil.cpu_percent()}%",
             "size": 15,
         },
         "action": None
