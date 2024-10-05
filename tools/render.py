@@ -72,6 +72,8 @@ def active_update_key_image(deck, key, state, key_config, info):
             "label": render_info["label"],
             "size": render_info["size"] if "size" in render_info else 14
         }
+        if isinstance(key_style["label"], dict):
+            key_style["label"] = key_style["label"]["pressed" if state else "default"]
         if callable(key_style["label"]):
             key_style["label"] = key_style["label"](gen_args(deck, key, info))
         elif not isinstance(key_style["label"], str):

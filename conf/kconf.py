@@ -1,23 +1,10 @@
 import mod.streamdeck as m_sd
 import mod.hardware as m_hw
+import mod.pihole as m_ph
 
 import time
 
 key_config = {
-    0: {
-        "render": {
-            "name": "classic",
-            "icon": {
-                "default": "linux.png",
-                "pressed": "linux.png"
-            },
-            "label": {
-                "default": lambda args: m_hw.get_linux_version(),
-                "pressed": "refresh"
-            }
-        },
-        "action": None
-    },
     2: {
         "render": {
             "name": "active",
@@ -64,6 +51,18 @@ key_config = {
         },
         "action": None
     },
+    8: {
+        "render": {
+            "name": "active",
+            "refresh_after": 30,
+            "label": {
+                "default": lambda args: m_ph.show_info(),
+                "pressed": "request\nsent"
+            },
+            "size": 15,
+        },
+        "action": lambda args: m_ph.disable()
+    },
     9: {
         "render": {
             "name": "big",
@@ -98,6 +97,20 @@ key_config = {
             "refresh_after": 1,
             "table": lambda args: m_hw.graph_psutil(args, "cpu"),
             "color": 0xFFFF00,
+        },
+        "action": None
+    },
+    14: {
+        "render": {
+            "name": "classic",
+            "icon": {
+                "default": "linux.png",
+                "pressed": "linux.png"
+            },
+            "label": {
+                "default": lambda args: m_hw.get_linux_version(),
+                "pressed": "refresh"
+            }
         },
         "action": None
     },

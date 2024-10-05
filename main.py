@@ -115,7 +115,6 @@ if __name__ == "__main__":
 
     except Exception as e:
         print("Error: ", e)
-        print("details: ", e.args, e.__cause__, e.__context__, e.__traceback__, e.__dict__, e.with_traceback, e.with_traceback())
         if not deck.is_open():
             exit(1)
         print("Closing deck...")
