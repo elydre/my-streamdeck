@@ -5,8 +5,8 @@ import time
 
 from StreamDeck.DeviceManager import DeviceManager
 
-import mod.kconf as kc
-import mod.render as rdr
+import tools.render as rdr
+import conf.kconf as kc
 
 ASSETS_PATH = os.path.join(os.path.dirname(__file__), "assets")
 
@@ -115,7 +115,9 @@ if __name__ == "__main__":
 
     except Exception as e:
         print("Error: ", e)
-        if not deck.is_open(): exit(1)
+        print("details: ", e.args, e.__cause__, e.__context__, e.__traceback__, e.__dict__, e.with_traceback, e.with_traceback())
+        if not deck.is_open():
+            exit(1)
         print("Closing deck...")
         deck.reset()
         deck.close()
