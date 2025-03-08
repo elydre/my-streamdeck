@@ -51,6 +51,15 @@ key_config = {
         },
         "action": None
     },
+    8: {
+        "render": {
+            "name": "active",
+            "refresh_after": 10,
+            "label": lambda args: m_ph.show_info(),
+            "size": 15,
+        },
+        "action": None
+    },
     9: {
         "render": {
             "name": "big",

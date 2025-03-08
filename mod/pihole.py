@@ -1,9 +1,13 @@
 import requests
+import urllib3
 import json
 import os
 
+urllib3.disable_warnings()
+
 pihole_url = None
 api_key = None
+sid = None
 
 def read_config():
     global pihole_url, api_key
@@ -21,22 +25,48 @@ def read_config():
 
     return pihole_url is not None and api_key is not None
 
-def disable(time = 120):
-    if not read_config():
-        return
+def new_sid():
+    response = requests.request("POST", f"{pihole_url}/auth", json = {"password": api_key}, verify = False)
+
     try:
-        requests.get(pihole_url, params={"auth": api_key, "disable": time})
+        sid = response.json()["session"]["sid"]
+        print(f"Got sid {sid}")
+        return sid
     except:
-        pass
+        print("Failed to get sid")
+        exit()
+
+def get_from_api(path):
+    global sid
+
+    for i in range(2):
+        if (sid is None):
+            sid = new_sid()
+
+        response = requests.request("GET", f"{pihole_url}/{path}?sid={sid}", verify = False)
+
+        try:
+            if (response.json()["error"]["key"]):
+                sid = None
+                continue
+        except KeyError:
+            pass
+
+        if (response.status_code != 200):
+            return None
+        return response.json()
+
+    return None
 
 def show_info():
     if not read_config():
         return "check\nthe\nconfig"
-    
-    try:
-        response = requests.get(pihole_url, params={"auth": api_key, "summaryRaw": ""})
-        data = response.json()
 
-        return f"Pi-Hole\n{data['dns_queries_today']}\n" + (f"{float(data['ads_percentage_today']):.1f}%" if data["status"] == "enabled" else "OFF")
-    except:
-        return "Error"
+    data = get_from_api("stats/summary")
+    if data is None:
+        return "get Error"
+
+    try:
+        return f"Pi-Hole\n{data['queries']['total']}\n" + (f"{float(data['queries']['percent_blocked']):.1f}%")
+    except KeyError:
+        return "parse Error"
