@@ -41,7 +41,7 @@ key_config = {
         "render": {
             "name": "active",
             "refresh_after": 1,
-            "label": lambda args: f"{sum(args['info']['l_usage']) / len(args['info']['l_usage']):.3f}%\n{max(args['info']['l_usage']):.2f}%\n{args['info']['crsp']:.3f}%\n{args['info']['mid_lps']:.4f}",
+            "label": lambda args: f"{args['info']['mid_lps']:.1f} fps\n{max(args['info']['l_usage']):.1f}%\n{sum(args['info']['l_usage']) / len(args['info']['l_usage']):.2f}%",
             "size": 15,
         },
         "action": lambda args: m_sd.exit_function(args)
@@ -87,7 +87,7 @@ key_config = {
         "render": {
             "name": "graph",
             "refresh_after": 1,
-            "table": lambda args: m_hw.to_graph(args, args["info"]["l_usage"]),
+            "table": lambda args: m_hw.graph_streamdeck(args, args["info"]["l_usage"]),
             "color": 0x66FF66,
         },
         "action": None

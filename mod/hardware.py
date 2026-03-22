@@ -34,6 +34,9 @@ def to_graph(args, in_list, in_max=None, in_min=0):
     if in_max is None: in_max = max(out_list) + max(out_list) / 10 + 1
     out_list = [int((i - in_min) * (max_val - 0) / (in_max - in_min)) for i in out_list]
 
+    for i in range(len(out_list)):
+        out_list[i] = max(0, min(out_list[i], max_val))
+
     # add values
     while len(out_list) < max_len:
         out_list.insert(0, 0)
@@ -52,6 +55,17 @@ def graph_psutil(args, thing):
         psutil_history[thing].append(get_memory_usage())
 
     return to_graph(args, psutil_history[thing], 100)
+
+def graph_streamdeck(args, in_list):
+    smoothed_in_list = in_list.copy()
+    try:
+        for i in range(3, len(in_list) - 3):
+            smoothed_in_list[i] = sum(in_list[i-3:i+4]) / 7
+    except:
+        pass
+        
+    return to_graph(args, [e for i, e in enumerate(smoothed_in_list) if i % 4 == 0], 50)
+
 
 def get_linux_version():
     # return linux kernel version

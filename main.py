@@ -37,7 +37,6 @@ current_info = {
     "font": DEFAULT_FONT,
     "mid_lps": 0,
     "max_lps": MAX_LOOP_SEC,
-    "crsp": 0, # cumulative removed seconds percentage
 }
 
 def thread_loop(deck):
@@ -47,8 +46,7 @@ def thread_loop(deck):
         key_to_update[i][1] = time.time() - i * 0.1
 
     ideal = 1 / MAX_LOOP_SEC
-    init_time = time.time()
-    loop_count = 0
+    last_ltimes = []
     crs = 0
 
     while deck.is_open():
@@ -64,18 +62,20 @@ def thread_loop(deck):
 
         if len(current_info["l_usage"]) > MAX_LOOP_SEC * 10:
             current_info["l_usage"].pop(0)
-        loop_count += 1
 
         taked_time = time.time() - start_time
-        loop_time = time.time() - init_time
+        mid_ltimes = sum(last_ltimes) / len(last_ltimes) if len(last_ltimes) > 0 else taked_time
         current_info["l_usage"].append((taked_time / ideal) * 100)
-        current_info["mid_lps"] = loop_count / loop_time
-        patched_time = (ideal * loop_count - loop_time) # time to wait to have the ideal loop time
-
-        crs -= patched_time
-        current_info["crsp"] = (crs / loop_time) * 100
+        current_info["mid_lps"] = 1 / mid_ltimes
+        patched_time = (ideal - mid_ltimes) * 5 # time to wait to have the ideal loop time
 
         time.sleep(max(ideal - taked_time + patched_time, 0))
+
+        if len(last_ltimes) > 100:
+            last_ltimes.pop(0)
+
+        last_ltimes.append(time.time() - start_time)
+
 
 def main(deck):
     deck.open()
