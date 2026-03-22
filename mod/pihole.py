@@ -34,7 +34,7 @@ def new_sid():
         return sid
     except:
         print("Failed to get sid")
-        exit()
+        return None
 
 def get_from_api(path):
     global sid
@@ -42,6 +42,8 @@ def get_from_api(path):
     for i in range(2):
         if (sid is None):
             sid = new_sid()
+        if sid is None:
+            return None
 
         response = requests.request("GET", f"{pihole_url}/{path}?sid={sid}", verify = False)
 

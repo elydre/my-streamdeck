@@ -1,14 +1,27 @@
 import mod.streamdeck as m_sd
 import mod.hardware as m_hw
+import mod.weather as m_wt
 import mod.pihole as m_ph
 
 import time
 
 key_config = {
+    1: {
+        "render": {
+            "name": "active",
+            "refresh_after": 3600,
+            "label": {
+                "default": lambda args: m_wt.show_info(),
+                "pressed": "refresh"
+            },
+            "size": 15,
+        },
+        "action": None
+    },
     2: {
         "render": {
             "name": "active",
-            "refresh_after": 0.9,
+            "refresh_after": 1,
             "label": lambda args: f"{time.strftime('%H:%M:%S')}\n{time.strftime('%H:%M:%S', time.gmtime())}",
             "size": 18,
         },
@@ -28,7 +41,7 @@ key_config = {
         "render": {
             "name": "active",
             "refresh_after": 1,
-            "label":  lambda args: f"{sum(args['info']['l_usage']) / len(args['info']['l_usage']):.3f}%\n{max(args['info']['l_usage']):.2f}%\n{args['info']['crsp']:.3f}%\n{args['info']['mid_lps']:.4f}",
+            "label": lambda args: f"{sum(args['info']['l_usage']) / len(args['info']['l_usage']):.3f}%\n{max(args['info']['l_usage']):.2f}%\n{args['info']['crsp']:.3f}%\n{args['info']['mid_lps']:.4f}",
             "size": 15,
         },
         "action": lambda args: m_sd.exit_function(args)
