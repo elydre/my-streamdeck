@@ -23,7 +23,7 @@ key_config = {
             "name": "active",
             "refresh_after": 1,
             "label": lambda args: f"{time.strftime('%H:%M:%S')}\n{time.strftime('%H:%M:%S', time.gmtime())}",
-            "size": 18,
+            "size": 17,
         },
         "action": None
     },

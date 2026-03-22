@@ -20,6 +20,25 @@ def read_config():
 
     return isinstance(weather_city, str) and len(weather_city) > 0
 
+winddir16_to_arrow = {
+    "N": "↓",
+    "NNE": "↓",
+    "NE": "↙",
+    "ENE": "←",
+    "E": "←",
+    "ESE": "←",
+    "SE": "↖",
+    "SSE": "↑",
+    "S": "↑",
+    "SSW": "↑",
+    "SW": "↗",
+    "WSW": "→",
+    "W": "→",
+    "WNW": "→",
+    "NW": "↘",
+    "NNW": "↓",
+}
+
 def get_weather():
     url = f"https://wttr.in/{weather_city}?format=j1"
 
@@ -33,7 +52,7 @@ def get_weather():
         return None
 
 def render_weather(data):
-    return f"{data['temp_C']}°C\n{data['humidity']}%\n{data['windspeedKmph']} km/h\n{data['winddir16Point']}"
+    return f"{data['temp_C']}°C\n{data['humidity']}%\n{data['windspeedKmph']} km/h\n{data['winddir16Point']} {winddir16_to_arrow.get(data['winddir16Point'], '?')}"
 
 def show_info():
     if not read_config():
@@ -42,8 +61,6 @@ def show_info():
     data = get_weather()
     if data is None:
         return "get Error"
-    
-    print("aaa")
     
     try:
         return render_weather(data)

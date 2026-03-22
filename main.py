@@ -25,7 +25,7 @@ def key_change_callback(deck, key, state):
     rdr.get_render(kc.key_config[key]["render"]["name"])(deck, key, state, kc.key_config, current_info)
 
 DEFAULT_INDEX = 0
-DEFAULT_FONT = "Roboto-Regular.ttf"
+DEFAULT_FONT = "8.ttf"
 DEFAULT_BRIGHTNESS = 40
 MAX_LOOP_SEC = 30
 
