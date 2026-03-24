@@ -68,7 +68,10 @@ key_config = {
         "render": {
             "name": "active",
             "refresh_after": 10,
-            "label": lambda args: m_ph.show_info(),
+            "label": {
+                "default": lambda args: m_ph.show_info(),
+                "pressed": "refresh"
+            },
             "size": 15,
         },
         "action": None

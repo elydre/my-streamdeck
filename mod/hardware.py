@@ -57,14 +57,11 @@ def graph_psutil(args, thing):
     return to_graph(args, psutil_history[thing], 100)
 
 def graph_streamdeck(args, in_list):
-    smoothed_in_list = in_list.copy()
-    try:
-        for i in range(3, len(in_list) - 3):
-            smoothed_in_list[i] = sum(in_list[i-3:i+4]) / 7
-    except:
-        pass
-        
-    return to_graph(args, [e for i, e in enumerate(smoothed_in_list) if i % 4 == 0], 50)
+    new_list = []
+    for i in range(0, len(in_list) - 4, 4):
+        new_list.append(max(in_list[i], in_list[i+1], in_list[i+2], in_list[i+3]))
+
+    return to_graph(args, new_list, 100)
 
 
 def get_linux_version():
